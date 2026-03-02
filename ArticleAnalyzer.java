@@ -1,80 +1,84 @@
+
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public class ArticleAnalyzer {
-    private ArrayList<String> stopWords;
-    private ArrayList<Article> articles;
 
-    public ArticleAnalyzer() {
-        stopWords = new ArrayList<String>();
-        articles = new ArrayList<Article>();
+    private ArrayList<String> stopWords; //load from FileOperators
+    private ArrayList<Article> articles; //load from FileOperators json 
+    private ArrayList<String> words; // sentiment words
+    private ArrayList<Double> values; // sentiment values
+
+    public ArticleAnalyzer(){
+        stopWords=FileOperator.getStringList("stopwords.txt");
+        System.out.println("Stop Word count"+stopWords.size());
+        articles=new ArrayList<>();
+        System.out.println("Articles count"+articles.size());
+        words = new ArrayList<>();
+        values = new ArrayList<>();
+
+
+
     }
-
-    public void addStopWord(String word) {
-        stopWords.add(word);
-    }
-
-    public void addArticle(Article article) {
-        articles.add(article);
-    }
-
-    public Article parseJson(String jsonLine) {
-        String link = "";
-        String headline = "";
-        String category = "";
-        String description = "";
-        String author = "";
-        String date = "";
-
-        Pattern pattern = Pattern.compile("\"(\\w+)\": \"([^\"]*)\"");
-        Matcher matcher = pattern.matcher(jsonLine);
-
-        while (matcher.find()) {
-            String key = matcher.group(1);
-            String value = matcher.group(2);
-
-            if (key.equals("link")) link = value;
-            else if (key.equals("headline")) headline = value;
-            else if (key.equals("category")) category = value;
-            else if (key.equals("short_description")) description = value;
-            else if (key.equals("authors")) author = value;
-            else if (key.equals("date")) date = value;
-        }
-
-        return new Article(link, headline, category, description, author, date);
-    }
-
-    public String removeStopWords(String text) {
-        String[] words = text.split(" ");
-        String result = "";
-        for (String word : words) {
-            if (!stopWords.contains(word.toLowerCase())) {
-                result += word + " ";
-            }
-        }
-        return result.trim();
-    }
-
     public static void main(String[] args) {
-        ArticleAnalyzer analyzer = new ArticleAnalyzer();
+       ArticleAnalyzer riano = new ArticleAnalyzer();
+       
+       ArrayList<String> sentimentLines = FileOperator.getStringList("sentiments.txt");
+       
+       String regex = "([a-zA-Z0-9]+),(-?\\d+\\.?\\d*)";
+       
+       for (String text : sentimentLines) {
+           Pattern l = Pattern.compile(regex);
+           Matcher lm = l.matcher(text);
+           boolean found = lm.find();
+           String word = found ? lm.group(1) : "";
+           Double value = found ? Double.parseDouble(lm.group(2)) : 0.0;
+           
+           if (found) {
+               riano.words.add(word);
+               riano.values.add(value);
+           }
+           
+           System.out.println(word + "   ----  " + value);
+       }
+       
+       System.out.println("\nTotal words loaded: " + riano.words.size());
+       System.out.println("Total values loaded: " + riano.values.size());
 
-        ArrayList<String> stopWordsList = FileOperator.getStringList("stopwords.txt");
-        for (String word : stopWordsList) {
-            analyzer.addStopWord(word);
-        }
 
-        ArrayList<String> articleLines = FileOperator.getStringList("News_Category_Dataset_v3.json");
-        for (String line : articleLines) {
-            Article article = analyzer.parseJson(line);
-            analyzer.addArticle(article);
-        }
-
-        for (Article article : analyzer.articles) {
-            String cleanedDescription = analyzer.removeStopWords(article.getDescription());
-            System.out.println("Headline: " + article.getHeadline());
-            System.out.println("Description: " + cleanedDescription);
-            System.out.println();
-        }
     }
+
+    public void addStopWord(String word){
+
+    }
+
+    public void addArticle(Article article){
+
+    }
+
+    public Article parseJson(String jsonLine){
+ 
+        Article result;
+        Pattern l = Pattern.compile("\"link\":\\s*\"([^\"]+)\""); 
+        Matcher lm =l.matcher(jsonLine); 
+         String lt = lm.find() ? lm.group(1) : ""; 
+        result=new Article(lt, "", "", "", "","");
+
+    return result;
+}
+
+ 
+    public String removeStopWords(String text){
+        
+        String result="";
+  
+       
+        return result;
+
+
+    } //remove stop words from Description
+
+
 }
